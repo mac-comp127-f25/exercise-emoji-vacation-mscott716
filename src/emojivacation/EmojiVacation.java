@@ -25,9 +25,7 @@ public class EmojiVacation {
         IRIS_COLOR = new Color(0x294CD6),
         PUPIL_COLOR = new Color(0x000307),
         OCULAR_HIGHLIGHT_COLOR = new Color(0xD4FFFFFF, true),
-        EYELID_COLOR = new Color(0x3E1919),
-        NAUSEOUS_COLOR = new Color(0x589817),
-        NAUSEOUS_LINE_COLOR = new Color(0x0F1A04);
+        EYELID_COLOR = new Color(0x3E1919);
 
     private static final int
         SCENE_WIDTH = 800,
@@ -41,15 +39,16 @@ public class EmojiVacation {
     }
 
     private static void doSlideShow(CanvasWindow canvas) {
-
-        generateVacationPhoto(canvas);
-        // while (true) {
-        //     generateVacationPhoto(canvas);
-        //     canvas.draw();
-        //     canvas.pause(3000);
-        //     canvas.removeAll();
-        // }
-
+        while (true) {
+            generateVacationPhoto(canvas);
+            canvas.draw();
+            canvas.pause(3000);
+            canvas.removeAll();
+            canvas.setBackground(NO_SLIDE_COLOR);
+            canvas.draw();
+            canvas.pause(50);
+            canvas.removeAll();
+        }
     }
 
     private static void generateVacationPhoto(CanvasWindow canvas) {
@@ -92,18 +91,29 @@ public class EmojiVacation {
         List<GraphicsGroup> family = new ArrayList <> ();
 
         for (int i = 0; i < adultCount; i++) {
-            family.add(createRandomEmoji(adultSize));
+            int size = family.size()+1;
+            if (i==0){
+                family.add(createRandomEmoji(adultSize));
+            } else {
+                int place = random.nextInt(0, size);
+            family.add(place, createRandomEmoji(adultSize));
+            }   
         }
 
         for (int i = 0; i < childCount; i++) {
-            family.add(createRandomEmoji(childSize));
+            int size = family.size()+1;
+            if (i==0){
+                family.add(createRandomEmoji(childSize));
+            } else {
+                int place = random.nextInt(0, size);
+            family.add(place, createRandomEmoji(childSize));
+            }
         }
 
         return family;
     }
 
     private static GraphicsGroup createRandomEmoji(double size) {
-
         GraphicsGroup emoji = createSmileyFace(size);
 
         int face = random.nextInt(1,5);
@@ -116,14 +126,11 @@ public class EmojiVacation {
             } else if (i == 3) {
                 emoji = createFrownyFace(size);
             } else if (i == 4) {
-                emoji = createNauseousFace(size);
-            } else if (i == 5) {
                 emoji = createContentedFace(size);
             }
         }
 
         return emoji;
-
     }
 
     private static void positionFamily(
@@ -132,7 +139,6 @@ public class EmojiVacation {
             double baselineY,
             double spacing
     ) {
-
         double totalX = leftX;
 
         for (GraphicsGroup emoji : family) {
@@ -140,7 +146,7 @@ public class EmojiVacation {
             double height = emoji.getHeight();
 
             double x = totalX;
-            double y = height - baselineY;
+            double y = baselineY - height;
 
             emoji.setPosition(x, y);
 
@@ -512,32 +518,6 @@ public class EmojiVacation {
         return group;
     }
 
-    public static GraphicsGroup createNauseousFace(double size) {
-        GraphicsGroup group = new GraphicsGroup();
-
-        Ellipse head = createHead(size, size);
-        head.setFillColor(NAUSEOUS_COLOR);
-        head.setStrokeColor(NAUSEOUS_LINE_COLOR);
-        group.add(head);
-
-        Line leftEye = createFlatEyelid(size * 0.15, -0.1);
-        leftEye.setCenter(size * 0.3, size * 0.3);
-        leftEye.setStrokeColor(NAUSEOUS_LINE_COLOR);
-        group.add(leftEye);
-
-        Line rightEye = createFlatEyelid(size * 0.15, 0.1);
-        rightEye.setCenter(size * 0.7, size * 0.3);
-        rightEye.setStrokeColor(NAUSEOUS_LINE_COLOR);
-        group.add(rightEye);
-
-        Arc mouth = createFrown(size * 0.6, size * 0.5);
-        mouth.setCenter(size * 0.5, size * 0.75);
-        mouth.setStrokeColor(NAUSEOUS_LINE_COLOR);
-        group.add(mouth);
-
-        return group;
-    }
-
     private static GraphicsGroup createEye(double size) {
         GraphicsGroup eye = new GraphicsGroup();
 
@@ -581,13 +561,6 @@ public class EmojiVacation {
         Arc mouth = new Arc(0, 0, ellipseWidth, ellipseHeight, 200, 140);
         mouth.setStrokeColor(MOUTH_COLOR);
         mouth.setStrokeWidth(4);
-        return mouth;
-    }
-
-    private static Line createFlatMouth(double width) {
-        Line mouth = new Line(0, 0, width, 0);
-        mouth.setStrokeColor(MOUTH_COLOR);
-        mouth.setStrokeWidth((float) (width * 0.1));
         return mouth;
     }
 
