@@ -18,7 +18,14 @@ public class EmojiVacation {
         TREE_LEAVES_COLOR = new Color(0x17af13),
         GRASS_COLOR = new Color(0xbcda9f),
         MOUNTAIN_COLOR = new Color(0x769afe),
-        NO_SLIDE_COLOR = new Color(0x22211a);
+        NO_SLIDE_COLOR = new Color(0x22211a),
+        HEAD_COLOR = new Color(0xFFDE30),
+        HEAD_OUTLINE_COLOR = new Color(0xAC9620),
+        MOUTH_COLOR = new Color(0xE45B5B),
+        IRIS_COLOR = new Color(0x294CD6),
+        PUPIL_COLOR = new Color(0x000307),
+        OCULAR_HIGHLIGHT_COLOR = new Color(0xD4FFFFFF, true),
+        EYELID_COLOR = new Color(0x3E1919);
 
     private static final int
         SCENE_WIDTH = 800,
@@ -32,8 +39,16 @@ public class EmojiVacation {
     }
 
     private static void doSlideShow(CanvasWindow canvas) {
-        // TODO: [Instructions step 8] Change this to an actual slideshow
-        generateVacationPhoto(canvas);
+        while (true) {
+            generateVacationPhoto(canvas);
+            canvas.draw();
+            canvas.pause(3000);
+            canvas.removeAll();
+            canvas.setBackground(NO_SLIDE_COLOR);
+            canvas.draw();
+            canvas.pause(50);
+            canvas.removeAll();
+        }
     }
 
     private static void generateVacationPhoto(CanvasWindow canvas) {
@@ -43,19 +58,29 @@ public class EmojiVacation {
 
         addCloudRows(canvas);
 
-        // TODO: [Instructions step 2] Create mountains 50% of the time.
-        //       You should randomly determine the size and number of layers
-        //       (within reasonable constraints).
+        // Adds mountains 50% of the time
+        if (percentChance(50)) {
+            double mtnSize = random.nextDouble(120, 200);
+            int mtnLayer = random.nextInt(1,5);
+
+            addMountains(canvas, 400, mtnSize, mtnLayer);
+        }
 
         addGround(canvas, 400);
 
-        // TODO: [Instructions step 2] Create forests 60% of the time. You should randomly
-        //       determine the count for the number of trees. Pick reasonable values for
-        //       other parameters.
+        // Adds trees 60% of the time
+        if (percentChance(60)) {
+            int count = random.nextInt(1,30);
+
+            addForest(canvas, 400, 800, count);
+        }
 
         List<GraphicsGroup> family = createFamily(2, 3);
         positionFamily(family, 60, 550, 20);
-        // TODO: [Instructions step 4] Add each emoji in the list to the canvas
+
+        for (GraphicsGroup emoji : family) {
+            canvas.add(emoji);
+        }
     }
 
     // –––––– Emoji family –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -63,27 +88,49 @@ public class EmojiVacation {
     private static List<GraphicsGroup> createFamily(int adultCount, int childCount) {
         double adultSize = 160, childSize = 90;
 
-        // TODO: [Instructions step 6] Change this so that instead of always creating one adult
-        //       and one child, it instead creates a list containing adultCount adults,
-        //       and childCount children.
-        //
-        // Hint: You can't use List.of() to do this, because you don't know the size of the
-        // resulting list before the code actually runs. What can you use?
-        //
-        return List.of(
-            createRandomEmoji(adultSize),
-            createRandomEmoji(childSize));
+        List<GraphicsGroup> family = new ArrayList <> ();
+
+        for (int i = 0; i < adultCount; i++) {
+            int size = family.size()+1;
+            if (i==0){
+                family.add(createRandomEmoji(adultSize));
+            } else {
+                int place = random.nextInt(0, size);
+            family.add(place, createRandomEmoji(adultSize));
+            }   
+        }
+
+        for (int i = 0; i < childCount; i++) {
+            int size = family.size()+1;
+            if (i==0){
+                family.add(createRandomEmoji(childSize));
+            } else {
+                int place = random.nextInt(0, size);
+            family.add(place, createRandomEmoji(childSize));
+            }
+        }
+
+        return family;
     }
 
     private static GraphicsGroup createRandomEmoji(double size) {
-        // TODO: [Instructions step 7] Change this so that instead of always creating a smiley face,
-        //       it randomly selects one of the many available emojis.
-        //
-        // Hint: You can use chained if/else conditionals: with a certain probability, return emoji
-        // type A, else with some other probability return emoji type B, else with a certain
-        // probability ... etc ... else return a smiley by default.
-        //
-        return ProvidedEmojis.createSmileyFace(size);
+        GraphicsGroup emoji = createSmileyFace(size);
+
+        int face = random.nextInt(1,5);
+
+        for (int i = 1; i <= face; i++) {
+            if (i == 1) {
+                emoji = createSmileyFace(size);
+            } else if (i == 2) {
+                emoji = createWinkingFace(size);
+            } else if (i == 3) {
+                emoji = createFrownyFace(size);
+            } else if (i == 4) {
+                emoji = createContentedFace(size);
+            }
+        }
+
+        return emoji;
     }
 
     private static void positionFamily(
@@ -92,15 +139,19 @@ public class EmojiVacation {
             double baselineY,
             double spacing
     ) {
-        // TODO: [Instructions step 5] Iterate over the emojis in the list,
-        //       and position them all in a neat row
+        double totalX = leftX;
 
-        // The leftmost emoji’s left edge should be at leftX, and spacing is the number of pixels that should be between
-        // each emoji and the next. But how to you space them if the kids and adults have different widths? (Hint: you
-        // can ask any graphics object for its width.)
-        //
-        // The bottom of each emoji should be baselineY. But setPosition() sets the _top_! How do you set the bottom to
-        // a given position? (Hint: you can ask any graphics object for its height.)
+        for (GraphicsGroup emoji : family) {
+            double width = emoji.getWidth();
+            double height = emoji.getHeight();
+
+            double x = totalX;
+            double y = baselineY - height;
+
+            emoji.setPosition(x, y);
+
+            totalX = totalX + spacing + width;
+        }
     }
 
     // –––––– Scenery ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -373,5 +424,150 @@ public class EmojiVacation {
      */
     private static int colorChannelVariation(int c, int amount) {
         return Math.min(255, Math.max(0, c + randomInt(-amount, amount)));
+    }
+
+    //-------------------------------------------------------------------------
+
+    /*
+     * Emojis
+     */
+
+     /**
+     * Creates a smiley face emoji.
+     *
+     * @param size The overall width and height of the emoji.
+     * @return A graphic that you can add to a window, or place inside some other graphics group.
+     */
+    public static GraphicsGroup createSmileyFace(double size) {
+        GraphicsGroup group = new GraphicsGroup();
+
+        group.add(createHead(size, size));
+
+        GraphicsGroup leftEye = createEye(size * 0.15);
+        leftEye.setCenter(size * 0.3, size * 0.3);
+        group.add(leftEye);
+
+        GraphicsGroup rightEye = createEye(size * 0.15);
+        rightEye.setCenter(size * 0.7, size * 0.3);
+        group.add(rightEye);
+
+        Arc mouth = createSmile(size * 0.6, size * 0.5);
+        mouth.setCenter(size * 0.5, size * 0.75);
+        group.add(mouth);
+
+        return group;
+    }
+
+    public static GraphicsGroup createFrownyFace(double size) {
+        GraphicsGroup group = new GraphicsGroup();
+
+        group.add(createHead(size, size));
+
+        GraphicsGroup leftEye = createEye(size * 0.15);
+        leftEye.setCenter(size * 0.3, size * 0.3);
+        group.add(leftEye);
+
+        GraphicsGroup rightEye = createEye(size * 0.15);
+        rightEye.setCenter(size * 0.7, size * 0.3);
+        group.add(rightEye);
+
+        Arc mouth = createFrown(size * 0.6, size * 0.5);
+        mouth.setCenter(size * 0.5, size * 0.7);
+        group.add(mouth);
+
+        return group;
+    }
+
+    public static GraphicsGroup createWinkingFace(double size) {
+        GraphicsGroup group = new GraphicsGroup();
+
+        group.add(createHead(size, size));
+
+        GraphicsGroup leftEye = createEye(size * 0.15);
+        leftEye.setCenter(size * 0.3, size * 0.3);
+        group.add(leftEye);
+
+        Line rightEye = createFlatEyelid(size * 0.15, 0);
+        rightEye.setCenter(size * 0.7, size * 0.3);
+        group.add(rightEye);
+
+        Arc mouth = createSmile(size * 0.6, size * 0.5);
+        mouth.setCenter(size * 0.5, size * 0.75);
+        group.add(mouth);
+
+        return group;
+    }
+
+    public static GraphicsGroup createContentedFace(double size) {
+        GraphicsGroup group = new GraphicsGroup();
+
+        group.add(createHead(size, size));
+
+        Arc leftEye = createClosedEye(size * 0.15);
+        leftEye.setCenter(size * 0.3, size * 0.3);
+        group.add(leftEye);
+
+        Arc rightEye = createClosedEye(size * 0.15);
+        rightEye.setCenter(size * 0.7, size * 0.3);
+        group.add(rightEye);
+
+        Arc mouth = createSmile(size * 0.6, size * 0.5);
+        mouth.setCenter(size * 0.5, size * 0.75);
+        group.add(mouth);
+
+        return group;
+    }
+
+    private static GraphicsGroup createEye(double size) {
+        GraphicsGroup eye = new GraphicsGroup();
+
+        Ellipse eyeBall = new Ellipse(0, 0, size, size);
+        eyeBall.setFillColor(PUPIL_COLOR);
+        eyeBall.setStrokeColor(IRIS_COLOR);
+        eyeBall.setStrokeWidth((float) (size * 0.2));
+        eye.add(eyeBall);
+
+        Ellipse ocularHighlight = new Ellipse(size * 0.5, size * 0.1, size * 0.4, size * 0.4);
+        ocularHighlight.setFillColor(OCULAR_HIGHLIGHT_COLOR);
+        ocularHighlight.setStroked(false);
+        eye.add(ocularHighlight);
+
+        return eye;
+    }
+
+    private static Arc createClosedEye(double size) {
+        Arc eyelid = new Arc(0, 0, size * 1.2, size, -20, -140);
+        eyelid.setStrokeWidth((float) (size * 0.12));
+        eyelid.setStrokeColor(EYELID_COLOR);
+        return eyelid;
+    }
+
+    private static Line createFlatEyelid(double width, double slope) {
+        Line eye = new Line(0, 0, width, width * slope);
+        eye.setStrokeWidth((float) (width * 0.15));
+        eye.setStrokeColor(EYELID_COLOR);
+        return eye;
+    }
+
+    private static Ellipse createHead(double height, double width) {
+        Ellipse head = new Ellipse(0, 0, width, height);
+        head.setFillColor(HEAD_COLOR);
+        head.setStrokeColor(HEAD_OUTLINE_COLOR);
+        head.setStrokeWidth(2);
+        return head;
+    }
+
+    private static Arc createSmile(double ellipseWidth, double ellipseHeight) {
+        Arc mouth = new Arc(0, 0, ellipseWidth, ellipseHeight, 200, 140);
+        mouth.setStrokeColor(MOUTH_COLOR);
+        mouth.setStrokeWidth(4);
+        return mouth;
+    }
+
+    private static Arc createFrown(double ellipseWidth, double ellipseHeight) {
+        Arc mouth = new Arc(0, 0, ellipseWidth, ellipseHeight, 20, 140);
+        mouth.setStrokeColor(MOUTH_COLOR);
+        mouth.setStrokeWidth(4);
+        return mouth;
     }
 }
